@@ -1,6 +1,6 @@
 import argparse
 import numpy as np
-import matplotlib.pyplot as plt
+from utils.plot_function import *
 from Serial_Port.SerialPort import HardwareInterface
 
 parser = argparse.ArgumentParser(description="Data Collection.")
@@ -13,5 +13,13 @@ args = parser.parse_args()
 if __name__ == '__main__':
     collector = HardwareInterface('COM6', 115200)
     collector.connect()
+    plt_T = []
+    plt_t = []
     while True:
         data = collector.read_sensor()
+        plt_T.append(data[0])
+        plt_t.append(data[2])
+        if data == []:
+            break
+    
+    plot_curve(plt_t, plt_T, "T-t plot", "t/s", "T/°c")
