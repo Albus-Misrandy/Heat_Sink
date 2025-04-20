@@ -1,4 +1,5 @@
 import numpy as np
+from Serial_Port.SerialPort import HardwareInterface
 
 
 class TemperatureEnv:
@@ -8,6 +9,7 @@ class TemperatureEnv:
         self.delta_T = 5.0  # 温度分箱间隔
         self.epsilon = 0.01  # 导数零值判定阈值
         self.max_steps = 200  # 最大步数
+        self.serial = HardwareInterface("COM4", 115200)
 
         # 动态参数
         self.T = 20.0  # 初始温度
@@ -26,7 +28,7 @@ class TemperatureEnv:
         self.time = 0.0
         return self.get_state()
 
-    def _get_state(self):
+    def get_state(self):
         """获取离散化后的状态"""
         if self.T < self.T_target:
             return 0
@@ -46,14 +48,16 @@ class TemperatureEnv:
 
     def step(self, action):
         """执行动作，返回(next_state, reward, done, info)"""
+        # Control the fan velocity
+        self.serial.send_float_data(action)
         # 更新系统动态
-        self.update_dynamics(action)
+        self.update_dynamics()
 
         # 计算奖励
         reward = self.calculate_reward()
 
         # 检查终止条件
-        done = self._check_done()
+        done = self.check_done()
 
         # 步数限制
         self.time += self.dt
@@ -62,20 +66,12 @@ class TemperatureEnv:
 
         return self.get_state(), reward, done, {}
 
-    def update_dynamics(self, action):
+    def update_dynamics(self):
         """根据动作更新温度动态"""
-        # 动作影响导数
-        if action == 0:  # 加热
-            self.dT += 2.0
-        elif action == 2:  # 冷却
-            self.dT -= 1.5
-
-        # 物理约束
-        self.dT = np.clip(self.dT, -3.0, 5.0)  # 导数限制
-
-        # 更新温度：二阶系统模拟
-        self.T += self.dT * self.dt
-        self.T = max(self.T, 0.0)  # 温度不低于0
+        T_list = self.serial.read_sensor()
+        self.time = T_list[0]
+        self.T = T_list[1]
+        self.dT = T_list[2]
 
     def calculate_reward(self):
         """计算即时奖励"""
@@ -102,7 +98,7 @@ class TemperatureEnv:
 
         return reward
 
-    def _check_done(self):
+    def check_done(self):
         """检查终止条件"""
         # 稳定在目标温度附近
         if (abs(self.T - self.T_target) < 0.5 and

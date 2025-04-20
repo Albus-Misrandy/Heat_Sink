@@ -17,9 +17,9 @@ class HardwareInterface:
             if len(data) == 12:
                 # 将字节转换为3个float
                 # '<'表示小端字节序，'fff'表示3个float
-                T, dT, t = struct.unpack('<fff', data)
-                data_list = [T, dT, t]
-                print(f"Receive: x={T:.4f}, y={dT:.4f}, z={t:.4f}")
+                t, T, dT = struct.unpack('<fff', data)
+                data_list = [t, T, dT]
+                print(f"Receive: x={t:.4f}, y={T:.4f}, z={dT:.4f}")
                 return data_list
             else:
                 print(f"Data is not completed, only receive {len(data)} bytes")
@@ -34,11 +34,11 @@ class HardwareInterface:
         else:
             print("Data could not send!")
 
-    def check_available(self):
-        ports = serial.tools.list_ports.comports()
-        print("Availabel USB Port:")
-        for port in ports:
-            print(port.device)
+    # def check_available(self):
+    #     ports = serial.tools.list_ports.comports()
+    #     print("Availabel USB Port:")
+    #     for port in ports:
+    #         print(port.device)
 
     def connect(self):
         try:
