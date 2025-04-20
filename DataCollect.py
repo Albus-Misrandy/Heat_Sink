@@ -17,6 +17,7 @@ if __name__ == '__main__':
     plt_T = []
     plt_dT = []
     while True:
+        # collector.send_float_data(2)
         data = collector.read_sensor()
         if data != None:
             if data[0] == 20:
@@ -29,5 +30,5 @@ if __name__ == '__main__':
 
     data_to_csv(plt_t, plt_T, plt_dT)
     
-    # plot_single_curve(plt_t, plt_T, "T-t plot", "t/s", "T/°c")
+    plot_single_curve(plt_t, plt_T, "T-t plot", "t/s", "T/°c")
     plot_muti_curve([plt_t, plt_t], [plt_T, plt_dT], "Temperature and Derivative", "t", "T & dT/dt")

@@ -43,7 +43,7 @@ def plot_muti_curve(x_data, y_data, title, xlabel, ylabel, colors=None, labels=N
         colors += default_colors[len(colors):n_curves]  # 补充不足的颜色
     
     if labels is None:
-        labels = [f"曲线 {i+1}" for i in range(n_curves)]
+        labels = [f"Curve {i+1}" for i in range(n_curves)]
     
     # 绘制所有曲线
     for i in range(n_curves):

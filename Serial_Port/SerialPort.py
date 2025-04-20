@@ -24,6 +24,22 @@ class HardwareInterface:
             else:
                 print(f"Data is not completed, only receive {len(data)} bytes")
 
+    def send_float_data(self, value):
+        if self.ser is not None:
+            data_bytes = struct.pack('<f', value)
+            self.ser.write(data_bytes)
+            if self.ser.in_waiting > 0:
+                received_data = self.ser.readline().decode('utf-8').strip()
+                print(f"收到响应: {received_data}")
+        else:
+            print("Data could not send!")
+
+    def check_available(self):
+        ports = serial.tools.list_ports.comports()
+        print("Availabel USB Port:")
+        for port in ports:
+            print(port.device)
+
     def connect(self):
         try:
             self.ser = serial.Serial(self.port, self.baudrate, timeout=1)

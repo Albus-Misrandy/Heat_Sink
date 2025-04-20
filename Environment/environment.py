@@ -6,7 +6,7 @@ class TemperatureEnv:
         # 环境参数
         self.T_target = 100.0  # 目标温度
         self.delta_T = 5.0  # 温度分箱间隔
-        self.epsilon = 0.001  # 导数零值判定阈值
+        self.epsilon = 0.01  # 导数零值判定阈值
         self.max_steps = 200  # 最大步数
 
         # 动态参数
@@ -26,18 +26,23 @@ class TemperatureEnv:
         self.time = 0.0
         return self.get_state()
 
-    def get_state(self):
+    def _get_state(self):
         """获取离散化后的状态"""
         if self.T < self.T_target:
             return 0
-
-        if self.T > self.T_target:
-            if self.dT > self.epsilon:
-                return 1
-            elif abs(self.dT) <= self.epsilon:
-                return 2
-            elif self.dT < -self.epsilon:
+        
+        if self.dT > self.epsilon:
+            return 1
+        elif abs(self.dT) <= self.epsilon:
+            return 2
+        else:
+            over_T = self.T - self.T_target
+            if over_T <= self.delta_T:
                 return 3
+            elif over_T <= 2*self.delta_T:
+                return 4
+            else:
+                return 5
 
     def step(self, action):
         """执行动作，返回(next_state, reward, done, info)"""
