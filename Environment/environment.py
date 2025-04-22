@@ -3,13 +3,13 @@ from Serial_Port.SerialPort import HardwareInterface
 
 
 class TemperatureEnv:
-    def __init__(self):
+    def __init__(self, serial):
         # 环境参数
         self.T_target = 100.0  # 目标温度
         self.delta_T = 5.0  # 温度分箱间隔
         self.epsilon = 0.01  # 导数零值判定阈值
         self.max_steps = 200  # 最大步数
-        self.serial = HardwareInterface("COM4", 115200)
+        self.serial = serial
 
         # 动态参数
         self.T = 20.0  # 初始温度
@@ -18,14 +18,13 @@ class TemperatureEnv:
         self.dt = 1.0  # 时间步长（秒）
 
         # 状态动作空间
-        self.action_space = 3  # 3个离散动作
+        self.action_space = 6  # 6个离散动作
         self.state_space = 6  # 6个离散状态
 
     def reset(self):
         """重置环境到初始状态"""
-        self.T = 20.0
-        self.dT = 0.0
-        self.time = 0.0
+        self.update_dynamics()
+
         return self.get_state()
 
     def get_state(self):
