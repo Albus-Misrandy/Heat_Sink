@@ -5,14 +5,14 @@ from Serial_Port.SerialPort import HardwareInterface
 class TemperatureEnv:
     def __init__(self, serial):
         # 环境参数
-        self.T_target = 100.0  # 目标温度
+        self.T_target = 25.0  # 目标温度
         self.delta_T = 5.0  # 温度分箱间隔
         self.epsilon = 0.01  # 导数零值判定阈值
         self.max_steps = 200  # 最大步数
         self.serial = serial
 
         # 动态参数
-        self.T = 20.0  # 初始温度
+        self.T = 0.0  # 初始温度
         self.dT = 0.0  # 初始导数
         self.time = 0.0  # 当前时间
         self.dt = 1.0  # 时间步长（秒）
@@ -68,9 +68,10 @@ class TemperatureEnv:
     def update_dynamics(self):
         """根据动作更新温度动态"""
         T_list = self.serial.read_sensor()
-        self.time = T_list[0]
-        self.T = T_list[1]
-        self.dT = T_list[2]
+        if T_list is not None:
+            self.time = T_list[0]
+            self.T = T_list[1]
+            self.dT = T_list[2]
 
     def calculate_reward(self):
         """计算即时奖励"""

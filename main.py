@@ -52,6 +52,7 @@ def main_train(agent, env, epochs):
                 # 每5个episode更新目标网络
                 if epoch % 5 == 0:
                     agent.update_target_net()
+                    print("losses:", losses)
                 continue
 
             if env.T == -1.0 and env.dT == -1.0:
@@ -59,6 +60,7 @@ def main_train(agent, env, epochs):
 
                 if epoch % 5 == 0:
                     agent.update_target_net()
+                    print("losses:", losses)
 
                 continue
 
@@ -69,5 +71,8 @@ if __name__ == '__main__':
     dqn_agent = DQNAgent(environment, environment.state_space, environment.action_space, args.memory_capacity,
                          args.greedy_start, args.greedy_end, args.decay, args.discount, args.learning_rate,
                          args.batch_size)
+
+    # Open the serial port first.
+    serial_port.connect()
 
     main_train(dqn_agent, environment, args.Iterations)

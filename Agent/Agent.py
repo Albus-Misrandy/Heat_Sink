@@ -1,7 +1,7 @@
 import random
 import torch.optim as optim
 from collections import deque
-from DQN_net import *
+from .DQN_net import *
 
 
 # DQN智能体
@@ -22,10 +22,9 @@ class DQNAgent:
         self.esp_end = esp_min
         self.decay = decay
 
-
     def select_action(self, state):
         if random.random() < self.epsilon:
-            return self.env.action_space.sample()
+            return random.randint(0, self.env.action_space - 1)
         else:
             with torch.no_grad():
                 return self.policy_net(state).argmax().item()
@@ -42,31 +41,31 @@ class DQNAgent:
         if len(self.memory) < self.batch_size:
             return 0
 
-            # 从经验回放中随机采样
-            batch = random.sample(self.memory, self.batch_size)
-            state_batch = torch.cat([s for s, _, _, _, _ in batch])
-            action_batch = torch.tensor([a for _, a, _, _, _ in batch])
-            reward_batch = torch.tensor([r for _, _, r, _, _ in batch])
-            next_state_batch = torch.cat([s for _, _, _, s, _ in batch])
-            done_batch = torch.tensor([d for _, _, _, _, d in batch], dtype=torch.float32)
+        # 从经验回放中随机采样
+        batch = random.sample(self.memory, self.batch_size)
+        state_batch = torch.cat([s for s, _, _, _, _ in batch])
+        action_batch = torch.tensor([a for _, a, _, _, _ in batch])
+        reward_batch = torch.tensor([r for _, _, r, _, _ in batch])
+        next_state_batch = torch.cat([s for _, _, _, s, _ in batch])
+        done_batch = torch.tensor([d for _, _, _, _, d in batch], dtype=torch.float32)
 
-            # 计算当前Q值
-            q_values = self.policy_net(state_batch).gather(1, action_batch.unsqueeze(1))
+        # 计算当前Q值
+        q_values = self.policy_net(state_batch).gather(1, action_batch.unsqueeze(1))
 
-            # 计算目标Q值
-            with torch.no_grad():
-                next_q_values = self.target_net(next_state_batch).max(1)[0]
-                target_q_values = reward_batch + (1 - done_batch) * self.gamma * next_q_values
+        # 计算目标Q值
+        with torch.no_grad():
+            next_q_values = self.target_net(next_state_batch).max(1)[0]
+            target_q_values = reward_batch + (1 - done_batch) * self.gamma * next_q_values
 
-            # 计算损失
-            loss = self.loss(q_values, target_q_values.unsqueeze(1))
+        # 计算损失
+        loss = self.loss(q_values, target_q_values.unsqueeze(1))
 
-            # 优化网络
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+        # 优化网络
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
-            # 衰减探索率
-            self.epsilon = max(self.esp_end, self.epsilon * self.decay)
+        # 衰减探索率
+        self.epsilon = max(self.esp_end, self.epsilon * self.decay)
 
-            return loss.item()
+        return loss.item()
