@@ -13,7 +13,7 @@ parser.add_argument("--learning_rate", type=float, default=0.001, help="Value of
 parser.add_argument("--discount", type=float, default=0.9, help="Value of gamma.")
 parser.add_argument("--batch_size", type=int, default=64, help="Value of batch size")
 parser.add_argument("--decay", type=float, default=0.995, help="Value of decay")
-parser.add_argument("--memory_capacity", type=int, default=10000, help="Memory of capacity.")
+parser.add_argument("--memory_capacity", type=int, default=100, help="Memory of capacity.")
 parser.add_argument("--greedy_start", type=float, default=1.0, help="Initial exploration rate.")
 parser.add_argument("--greedy_end", type=float, default=0.9, help="Minimum exploration rate.")
 
@@ -28,6 +28,7 @@ def main_train(agent, env, epochs):
         print("epochs:", epoch)
         state = env.reset()
         state = torch.FloatTensor(state).unsqueeze(0)
+        print("state:", state)
         total_reward = 0
 
         while True:
@@ -50,7 +51,7 @@ def main_train(agent, env, epochs):
                 epochs_rewards.append(total_reward)
 
                 # 每5个episode更新目标网络
-                if epoch % 5 == 0:
+                if epoch % 1 == 0:
                     agent.update_target_net()
                     print("losses:", losses)
                 continue
@@ -58,7 +59,7 @@ def main_train(agent, env, epochs):
             if env.T == -1.0 and env.dT == -1.0:
                 epochs_rewards.append(total_reward)
 
-                if epoch % 5 == 0:
+                if epoch % 1 == 0:
                     agent.update_target_net()
                     print("losses:", losses)
 

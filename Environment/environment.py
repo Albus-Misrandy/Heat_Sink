@@ -5,7 +5,7 @@ from Serial_Port.SerialPort import HardwareInterface
 class TemperatureEnv:
     def __init__(self, serial):
         # 环境参数
-        self.T_target = 25.0  # 目标温度
+        self.T_target = 50  # 目标温度
         self.delta_T = 5.0  # 温度分箱间隔
         self.epsilon = 0.01  # 导数零值判定阈值
         self.max_steps = 200  # 最大步数

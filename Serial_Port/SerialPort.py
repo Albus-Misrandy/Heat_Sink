@@ -19,7 +19,7 @@ class HardwareInterface:
                 # '<'表示小端字节序，'fff'表示3个float
                 t, T, dT = struct.unpack('<fff', data)
                 data_list = [t, T, dT]
-                print(f"Receive: x={t:.4f}, y={T:.4f}, z={dT:.4f}")
+                print(f"Receive: t={t:.4f}, T={T:.4f}, dT={dT:.4f}")
                 return data_list
             else:
                 print(f"Data is not completed, only receive {len(data)} bytes")

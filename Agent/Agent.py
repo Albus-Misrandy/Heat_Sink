@@ -8,8 +8,8 @@ from .DQN_net import *
 class DQNAgent:
     def __init__(self, env, state_dim, action_dim, memory_cap, esp_start, esp_min, decay, gamma, lr, batch_size):
         self.env = env
-        self.policy_net = DQN(state_dim, action_dim)  # 策略网络
-        self.target_net = DQN(state_dim, action_dim)  # 目标网络
+        self.policy_net = DQN(1, 1)  # 策略网络
+        self.target_net = DQN(1, 1)  # 目标网络
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()  # 目标网络不更新参数
 
