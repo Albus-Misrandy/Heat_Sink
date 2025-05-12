@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(description="Q Learning of Heat Sink.")
 
 parser.add_argument("--baudrate", type=int, default=115200, help="The baudrate of the serial port.")
 parser.add_argument("--COM", type=str, default='COM4', help="The number of the serial port com.")
-parser.add_argument("--Iterations", type=int, default=100, help="Training iterations.")
+parser.add_argument("--Iterations", type=int, default=50, help="Training iterations.")
 parser.add_argument("--learning_rate", type=float, default=0.001, help="Value of Alpha.")
 parser.add_argument("--discount", type=float, default=0.9, help="Value of gamma.")
 parser.add_argument("--batch_size", type=int, default=64, help="Value of batch size")
@@ -34,9 +34,10 @@ def main_train(agent, env, epochs):
         while not done:
             action = agent.select_action(state)
             next_state, reward, done, _ = env.step(action)
+            # state = torch.tensor(state, dtype=torch.float32)
 
             # 存储转换
-            agent.store_transition(state, action, reward, next_state, done)
+            agent.store_experience(state, action, reward, next_state, done)
             agent.optimize_model()
             state = next_state
             total_reward += reward
@@ -56,11 +57,11 @@ def main_train(agent, env, epochs):
             
 
 if __name__ == '__main__':
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     serial_port = HardwareInterface(args.COM, args.baudrate)
     environment = TemperatureEnv(serial_port)
-    dqn_agent = DQNAgent(environment, environment.state_space, environment.action_space, args.memory_capacity,
-                         args.greedy_start, args.greedy_end, args.decay, args.discount, args.learning_rate,
-                         args.batch_size)
+    dqn_agent = DQNAgent(device, environment.state_space, environment.action_space, args.batch_size,
+                         args.discount, args.greedy_start, args.greedy_end)
 
     # Open the serial port first.
     serial_port.connect()

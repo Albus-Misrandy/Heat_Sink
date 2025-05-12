@@ -8,7 +8,7 @@ import struct
 import time
 
 class TemperatureEnv:
-    def __init__(self, serial, target_temp=50, delta_T=5.0, epsilon=0.005, max_steps=500):
+    def __init__(self, serial, target_temp=35, delta_T=5.0, epsilon=0.005, max_steps=500):
         # 环境参数
         self.T_target = target_temp  # 目标温度
         self.delta_T = delta_T  # 温度分箱间隔

@@ -39,6 +39,8 @@ class DQNAgent:
                 return q_values.argmax().item()  # 选择Q值最大的动作
 
     def store_experience(self, state, action, reward, next_state, done):
+        state = torch.tensor([state], dtype=torch.float32)  # 将标量转换为包含一个元素的张量
+        next_state = torch.tensor([next_state], dtype=torch.float32)  # 同样处理 next_state
         """存储经验"""
         self.memory.append((state, action, reward, next_state, done))
 
@@ -48,14 +50,20 @@ class DQNAgent:
             return
         transitions = random.sample(self.memory, self.batch_size)
         batch = list(zip(*transitions))
+        print(batch[0])
 
         state_batch = torch.tensor(batch[0], dtype=torch.float32).to(self.device)
+        # print(state_batch)
+        print(state_batch.shape)
         action_batch = torch.tensor(batch[1], dtype=torch.long).to(self.device)
         reward_batch = torch.tensor(batch[2], dtype=torch.float32).to(self.device)
         next_state_batch = torch.tensor(batch[3], dtype=torch.float32).to(self.device)
         done_batch = torch.tensor(batch[4], dtype=torch.uint8).to(self.device)
 
-        current_q_values = self.model(state_batch).gather(1, action_batch.unsqueeze(1)).squeeze(1)
+        current_q_values = self.model(state_batch)
+        print(current_q_values)
+        print(current_q_values.shape)
+        current_q_values = current_q_values.gather(1, action_batch.unsqueeze(0)).squeeze(1)
         next_q_values = self.target_model(next_state_batch).max(1)[0]
         target_q_values = reward_batch + (self.gamma * next_q_values * (1 - done_batch))
 
