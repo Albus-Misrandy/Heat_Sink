@@ -3,6 +3,7 @@ import torch
 from Serial_Port.SerialPort import HardwareInterface
 from Environment.environment import TemperatureEnv
 from Agent.Agent import DQNAgent
+from utils.plot_function import *
 
 parser = argparse.ArgumentParser(description="Q Learning of Heat Sink.")
 
@@ -21,50 +22,38 @@ args = parser.parse_args()
 
 
 def main_train(agent, env, epochs):
-    epochs_rewards = []
-    losses = []
+    reward_list = []
+    epsilon_list = []
+    loss_list = []
 
     for epoch in range(epochs):
-        print("epochs:", epoch)
         state = env.reset()
-        state = torch.FloatTensor(state).unsqueeze(0)
-        print("state:", state)
+        done = False
         total_reward = 0
 
-        while True:
+        while not done:
             action = agent.select_action(state)
             next_state, reward, done, _ = env.step(action)
-            next_state = torch.FloatTensor(next_state).unsqueeze(0)
-            total_reward += reward
 
             # 存储转换
             agent.store_transition(state, action, reward, next_state, done)
-
-            # 训练网络
-            loss = agent.train()
-            if loss > 0:
-                losses.append(loss)
-
+            agent.optimize_model()
             state = next_state
+            total_reward += reward
+        
+        reward_list.append(total_reward)
+        epsilon_list.append(agent.epsilon)
+        loss_list.append(agent.loss_list[-1])
 
-            if done:
-                epochs_rewards.append(total_reward)
+        if epoch % 10 == 0:
+            agent.update_target_network()
+            print(f"Epochs:{epoch}, Total reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
 
-                # 每5个episode更新目标网络
-                if epoch % 1 == 0:
-                    agent.update_target_net()
-                    print("losses:", losses)
-                continue
+    plot_single_curve(range(epochs), reward_list, "Total Reward Over Episodes", "Episodes", "Total Reward")
+    plot_single_curve(range(epochs), epsilon_list, "Epsilon Over Episodes", "Episodes", "Epsilon", color="green")
+    plot_single_curve(range(epochs), loss_list, "Loss Over Episodes", "Episodes", "Loss", color="red")
 
-            if env.T == -1.0 and env.dT == -1.0:
-                epochs_rewards.append(total_reward)
-
-                if epoch % 1 == 0:
-                    agent.update_target_net()
-                    print("losses:", losses)
-
-                continue
-
+            
 
 if __name__ == '__main__':
     serial_port = HardwareInterface(args.COM, args.baudrate)

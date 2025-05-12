@@ -11,7 +11,7 @@ class HardwareInterface:
         # self.connect()
 
     """读取温度和导数数据包"""
-    def read_sensor(self):
+    def read_sensor_3bits(self):
         if self.ser is not None:
             data = self.ser.read(12)
             if len(data) == 12:
@@ -20,6 +20,19 @@ class HardwareInterface:
                 t, T, dT = struct.unpack('<fff', data)
                 data_list = [t, T, dT]
                 print(f"Receive: t={t:.4f}, T={T:.4f}, dT={dT:.4f}")
+                return data_list
+            else:
+                print(f"Data is not completed, only receive {len(data)} bytes")
+    
+    def read_sensor_5bits(self):
+        if self.ser is not None:
+            data = self.ser.read(20)
+            if len(data) == 20:
+                # 将字节转换为5个float
+                # '<'表示小端字节序，'fffff'表示6个float
+                t, T1, dT1, T2, dT2 = struct.unpack('<fffff', data)
+                data_list = [t, T1, dT1, T2, dT2]
+                print(f"Receive: t1={t:.4f}, T1={T1:.4f}, dT1={dT1:.4f}, T2={T2:.4f}, dT2={dT2:.4f},")
                 return data_list
             else:
                 print(f"Data is not completed, only receive {len(data)} bytes")
