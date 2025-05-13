@@ -8,7 +8,7 @@ from utils.plot_function import *
 parser = argparse.ArgumentParser(description="Q Learning of Heat Sink.")
 
 parser.add_argument("--baudrate", type=int, default=115200, help="The baudrate of the serial port.")
-parser.add_argument("--COM", type=str, default='COM4', help="The number of the serial port com.")
+parser.add_argument("--COM", type=str, default='COM6', help="The number of the serial port com.")
 parser.add_argument("--Iterations", type=int, default=50, help="Training iterations.")
 parser.add_argument("--learning_rate", type=float, default=0.001, help="Value of Alpha.")
 parser.add_argument("--discount", type=float, default=0.9, help="Value of gamma.")
@@ -38,10 +38,10 @@ def main_train(agent, env, epochs):
 
             # 存储转换
             agent.store_experience(state, action, reward, next_state, done)
-            agent.optimize_model()
+            agent.train()
             state = next_state
             total_reward += reward
-        
+
         reward_list.append(total_reward)
         epsilon_list.append(agent.epsilon)
         loss_list.append(agent.loss_list[-1])
@@ -54,7 +54,6 @@ def main_train(agent, env, epochs):
     plot_single_curve(range(epochs), epsilon_list, "Epsilon Over Episodes", "Episodes", "Epsilon", color="green")
     plot_single_curve(range(epochs), loss_list, "Loss Over Episodes", "Episodes", "Loss", color="red")
 
-            
 
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

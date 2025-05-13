@@ -32,7 +32,7 @@ class HardwareInterface:
                 # '<'表示小端字节序，'fffff'表示6个float
                 t, T1, dT1, T2, dT2 = struct.unpack('<fffff', data)
                 data_list = [t, T1, dT1, T2, dT2]
-                print(f"Receive: t1={t:.4f}, T1={T1:.4f}, dT1={dT1:.4f}, T2={T2:.4f}, dT2={dT2:.4f},")
+                print(f"Receive: t={t:.4f}, T1={T1:.4f}, dT1={dT1:.4f}, T2={T2:.4f}, dT2={dT2:.4f},")
                 return data_list
             else:
                 print(f"Data is not completed, only receive {len(data)} bytes")
