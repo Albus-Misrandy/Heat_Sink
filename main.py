@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(description="Q Learning of Heat Sink.")
 
 parser.add_argument("--baudrate", type=int, default=115200, help="The baudrate of the serial port.")
 parser.add_argument("--COM", type=str, default='COM6', help="The number of the serial port com.")
-parser.add_argument("--Iterations", type=int, default=50, help="Training iterations.")
+parser.add_argument("--Iterations", type=int, default=100, help="Training iterations.")
 parser.add_argument("--learning_rate", type=float, default=0.001, help="Value of Alpha.")
 parser.add_argument("--discount", type=float, default=0.9, help="Value of gamma.")
 parser.add_argument("--batch_size", type=int, default=64, help="Value of batch size")
@@ -27,6 +27,16 @@ def main_train(agent, env, epochs):
     loss_list = []
 
     for epoch in range(epochs):
+        while True:
+            user_input = input(f"按下 'y' 开始第 {epoch} 轮训练，或按其他键退出程序: ")
+            if user_input.lower() == 'y':
+                break
+            elif user_input.lower() in ['q', 'exit']:
+                print("退出训练。")
+                return
+            else:
+                print("请输入 'y' 来开始，或 'q' 退出。")
+                
         state = env.reset()
         done = False
         total_reward = 0
@@ -45,8 +55,9 @@ def main_train(agent, env, epochs):
         reward_list.append(total_reward)
         epsilon_list.append(agent.epsilon)
         loss_list.append(agent.loss_list[-1])
+        print(f"Epoch:{epoch}, Loss:{agent.loss_list[-1]}")
 
-        if epoch % 10 == 0:
+        if epoch % 5 == 0:
             agent.update_target_network()
             print(f"Epochs:{epoch}, Total reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
 

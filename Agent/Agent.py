@@ -49,7 +49,7 @@ class DQNAgent:
         if len(self.memory) < self.batch_size:
             return
         batch = random.sample(self.memory, self.batch_size)
-        print(batch)
+        # print(batch)
         # batch = list(zip(*transitions))
         state_batch = torch.cat([s for s, _, _, _, _ in batch]).view(self.batch_size, -1).to(self.device)
         action_batch = torch.tensor([a for _, a, _, _, _ in batch]).to(self.device)

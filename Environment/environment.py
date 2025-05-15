@@ -8,7 +8,7 @@ import struct
 import time
 
 class TemperatureEnv:
-    def __init__(self, serial, target_temp=35, delta_T=5.0, epsilon=0.005, max_steps=500):
+    def __init__(self, serial, target_temp=35, delta_T=2.0, epsilon=0.02, max_steps=500):
         # 环境参数
         self.T_target = target_temp  # 目标温度
         self.delta_T = delta_T  # 温度分箱间隔
@@ -21,13 +21,14 @@ class TemperatureEnv:
         self.dT = 0.0  # 初始导数
         self.time = 0.0  # 当前时间
         self.dt = 1.0  # 时间步长（秒）
+        self.stable_counter = 0
 
         # 状态动作空间
         self.action_space = 10  # 10个离散动作（风扇转速档次 0-9）
         self.state_space = 6  # 离散状态数量
 
         # 安全参数
-        self.emergency_temp = 65  # 紧急温度阈值(℃)
+        self.emergency_temp = 42  # 紧急温度阈值(℃)
         self.last_action = 5  # 上次动作（初始中值）
 
     def reset(self):
@@ -104,6 +105,12 @@ class TemperatureEnv:
         """检查是否满足终止条件"""
         if self.T > self.emergency_temp:
             return True  # 温度超过紧急阈值
+        # 检查是否连续满足稳定条件
         if abs(self.T - self.T_target) < 0.5 and abs(self.dT) < self.epsilon:
-            return True  # 达到目标温度，结束
+            self.stable_counter += 1
+        else:
+            self.stable_counter = 0
+
+        if self.stable_counter >= 10:
+            return True  # 连续满足10次才真正终止
         return False
