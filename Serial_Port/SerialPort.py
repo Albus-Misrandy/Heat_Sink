@@ -48,6 +48,18 @@ class HardwareInterface:
         else:
             print("Data could not send!")
 
+    def send_float_array(self, value_list):
+        if self.ser is not None:
+            if len(value_list) != 4:
+                print("错误：必须是4个值的数组")
+                return
+            # 把浮点数数组转为用逗号分隔的字符串，例如 "1.2,3.4,5.6,7.8"
+            data_str = ','.join(str(v) for v in value_list)
+            self.ser.write((data_str + '\n').encode('utf-8'))
+            print(f"已发送数组: {data_str}")
+        else:
+            print("串口未连接，无法发送数据！")
+
     def connect(self):
         try:
             self.ser = serial.Serial(self.port, self.baudrate, timeout=1)

@@ -21,49 +21,31 @@ parser.add_argument("--greedy_end", type=float, default=0.9, help="Minimum explo
 args = parser.parse_args()
 
 
-def main_train(agent, env, epochs):
-    reward_list = []
-    epsilon_list = []
-    loss_list = []
+def main_train(agent, env, epoch, serial, reward_list, epsilon_list, loss_list):         
+    state = env.reset()
+    done = False
+    total_reward = 0
 
-    for epoch in range(epochs):
-        while True:
-            user_input = input(f"按下 'y' 开始第 {epoch} 轮训练，或按其他键退出程序: ")
-            if user_input.lower() == 'y':
-                break
-            elif user_input.lower() in ['q', 'exit']:
-                print("退出训练。")
-                return
-            else:
-                print("请输入 'y' 来开始，或 'q' 退出。")
-                
-        state = env.reset()
-        done = False
-        total_reward = 0
+    while not done:
+        action = agent.select_action(state)
+        next_state, reward, done, _ = env.step(action)
+        print(env.time)
+        # state = torch.tensor(state, dtype=torch.float32)
 
-        while not done:
-            action = agent.select_action(state)
-            next_state, reward, done, _ = env.step(action)
-            # state = torch.tensor(state, dtype=torch.float32)
+        # 存储转换
+        agent.store_experience(state, action, reward, next_state, done)
+        agent.train()
+        state = next_state
+        total_reward += reward
 
-            # 存储转换
-            agent.store_experience(state, action, reward, next_state, done)
-            agent.train()
-            state = next_state
-            total_reward += reward
+    reward_list.append(total_reward)
+    epsilon_list.append(agent.epsilon)
+    loss_list.append(agent.loss_list[-1])
+    print(f"Epoch:{epoch}, Loss:{agent.loss_list[-1]}")
 
-        reward_list.append(total_reward)
-        epsilon_list.append(agent.epsilon)
-        loss_list.append(agent.loss_list[-1])
-        print(f"Epoch:{epoch}, Loss:{agent.loss_list[-1]}")
-
-        if epoch % 5 == 0:
-            agent.update_target_network()
-            print(f"Epochs:{epoch}, Total reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
-
-    plot_single_curve(range(epochs), reward_list, "Total Reward Over Episodes", "Episodes", "Total Reward")
-    plot_single_curve(range(epochs), epsilon_list, "Epsilon Over Episodes", "Episodes", "Epsilon", color="green")
-    plot_single_curve(range(epochs), loss_list, "Loss Over Episodes", "Episodes", "Loss", color="red")
+    agent.update_target_network()
+    print(f"Epochs:{epoch}, Total reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
+    return reward_list, epsilon_list, loss_list
 
 
 if __name__ == '__main__':
@@ -76,4 +58,26 @@ if __name__ == '__main__':
     # Open the serial port first.
     serial_port.connect()
 
-    main_train(dqn_agent, environment, args.Iterations)
+    reward_list = []
+    epsilon_list = []
+    loss_list = []
+
+    for epoch in range(args.Iterations):
+        while True:
+            user_input = input(f"按下 'y' 或'a'开始第 {epoch} 轮训练，或按其他键退出程序: ")
+            if user_input.lower() == 'y':
+                break
+            elif user_input.lower() == 'a':
+                serial_port.send_float_array([1, 0, 0, 0])
+                break
+            elif user_input.lower() in ['q', 'exit']:
+                print("退出训练。")
+                break
+            else:
+                print("请输入 'y' 来开始，或 'q' 退出。")
+        environment.time = 0
+        main_train(dqn_agent, environment, args.Iterations, serial_port, reward_list, epsilon_list, loss_list)
+
+    # plot_single_curve(range(epochs), reward_list, "Total Reward Over Episodes", "Episodes", "Total Reward")
+    # plot_single_curve(range(epochs), epsilon_list, "Epsilon Over Episodes", "Episodes", "Epsilon", color="green")
+    # plot_single_curve(range(epochs), loss_list, "Loss Over Episodes", "Episodes", "Loss", color="red")

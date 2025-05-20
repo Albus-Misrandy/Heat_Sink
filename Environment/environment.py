@@ -8,7 +8,7 @@ import struct
 import time
 
 class TemperatureEnv:
-    def __init__(self, serial, target_temp=35, delta_T=2.0, epsilon=0.02, max_steps=500):
+    def __init__(self, serial, target_temp=35, delta_T=2.0, epsilon=0.02, max_steps=70):
         # 环境参数
         self.T_target = target_temp  # 目标温度
         self.delta_T = delta_T  # 温度分箱间隔
@@ -34,6 +34,7 @@ class TemperatureEnv:
     def reset(self):
         """重置环境到初始状态"""
         self.update_dynamics()
+        self.time = 0
         return self.get_state()
 
     def get_state(self):
@@ -56,7 +57,7 @@ class TemperatureEnv:
     def step(self, action):
         """执行动作，返回(next_state, reward, done, info)"""
         # 控制风扇转速
-        self.serial.send_float_data(action)
+        self.serial.send_float_array([0, 0, 0, action])
         # 更新系统动态
         self.update_dynamics()
 
@@ -111,6 +112,6 @@ class TemperatureEnv:
         else:
             self.stable_counter = 0
 
-        if self.stable_counter >= 10:
+        if self.stable_counter >= 5:
             return True  # 连续满足10次才真正终止
         return False

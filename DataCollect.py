@@ -19,10 +19,13 @@ if __name__ == '__main__':
     plt_T2 = []
     plt_dT2 = []
     while True:
+        # collector.send_float_array([1, 0, 0, 0])
         data = collector.read_sensor_5bits()
         if data is not None:
             if data == [-1.0, -1.0, -1.0, -1.0, -1.0]:
                 break
+            if data[0] == 20:
+                collector.send_float_array([1, 0, 0, 0])
             plt_t.append(data[0])
             plt_T1.append(data[1])
             plt_dT1.append(data[2])
